@@ -59,6 +59,12 @@
         function create() {
             bin = this.physics.add.sprite(400, 550, 'bin01').setScale(0.7);
             bin.setCollideWorldBounds(true);
+            bin.setInteractive();
+            this.input.setDraggable(bin);
+            
+            this.input.on('drag', function (pointer, gameObject, dragX) {
+                gameObject.x = dragX;
+            });
 
             vapes = this.physics.add.group();
             
@@ -73,14 +79,6 @@
 
         function update() {
             if (gameOver) return;
-
-            if (cursors.left.isDown) {
-                bin.setVelocityX(-300);
-            } else if (cursors.right.isDown) {
-                bin.setVelocityX(300);
-            } else {
-                bin.setVelocityX(0);
-            }
         }
 
         function spawnVape() {
@@ -88,7 +86,7 @@
             let x = Phaser.Math.Between(50, 750);
             let randomVape = Phaser.Math.RND.pick(vapeTypes);
             let vape = vapes.create(x, 0, randomVape);
-            vape.setScale(0.5);
+            vape.setScale(0.3);
             vape.setVelocityY(speed);
         }
 
