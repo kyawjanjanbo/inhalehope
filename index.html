@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vape No More Game</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <style>
@@ -13,6 +13,10 @@
             align-items: center;
             height: 100vh;
             background-color: #222;
+            overflow: hidden;
+        }
+        canvas {
+            touch-action: none;
         }
     </style>
 </head>
@@ -20,8 +24,8 @@
     <script>
         const config = {
             type: Phaser.AUTO,
-            width: 800,
-            height: 600,
+            width: window.innerWidth > 800 ? 800 : window.innerWidth,
+            height: window.innerHeight > 600 ? 600 : window.innerHeight,
             backgroundColor: '#87CEEB',
             physics: {
                 default: 'arcade',
@@ -40,7 +44,6 @@
         let game = new Phaser.Game(config);
         let bin;
         let vapes;
-        let cursors;
         let score = 0;
         let scoreText;
         let speed = 150;
@@ -57,13 +60,19 @@
         }
 
         function create() {
-            bin = this.physics.add.sprite(400, 570, 'bin01').setScale(0.4);
+            bin = this.physics.add.sprite(config.width / 2, config.height - 50, 'bin01').setScale(0.3);
             bin.setCollideWorldBounds(true);
             bin.setInteractive();
             this.input.setDraggable(bin);
             
             this.input.on('drag', function (pointer, gameObject, dragX) {
-                gameObject.x = dragX;
+                gameObject.x = Phaser.Math.Clamp(dragX, bin.width / 2, config.width - bin.width / 2);
+            });
+
+            this.input.on('pointermove', function (pointer) {
+                if (pointer.isDown) {
+                    bin.x = Phaser.Math.Clamp(pointer.x, bin.width / 2, config.width - bin.width / 2);
+                }
             });
 
             vapes = this.physics.add.group();
@@ -73,8 +82,6 @@
             this.physics.add.overlap(bin, vapes, catchVape, null, this);
             
             scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '20px', fill: '#fff' });
-            
-            cursors = this.input.keyboard.createCursorKeys();
         }
 
         function update() {
@@ -83,10 +90,10 @@
 
         function spawnVape() {
             if (gameOver) return;
-            let x = Phaser.Math.Between(50, 750);
+            let x = Phaser.Math.Between(50, config.width - 50);
             let randomVape = Phaser.Math.RND.pick(vapeTypes);
             let vape = vapes.create(x, 0, randomVape);
-            vape.setScale(0.3);
+            vape.setScale(0.2);
             vape.setVelocityY(speed);
         }
 
