@@ -26,7 +26,8 @@
             physics: {
                 default: 'arcade',
                 arcade: {
-                    gravity: { y: 200 }
+                    gravity: { y: 0 },
+                    debug: false
                 }
             },
             scene: {
@@ -37,45 +38,68 @@
         };
         
         let game = new Phaser.Game(config);
+        let bin;
         let vapes;
+        let cursors;
         let score = 0;
         let scoreText;
+        let speed = 150;
         let gameOver = false;
+        let vapeTypes = ['vape01', 'vape02', 'vape03', 'vape04', 'vape05'];
 
         function preload() {
-            this.load.image('vape', 'https://i.imgur.com/JFf0D5Y.png'); // Vape image
+            this.load.image('vape01', 'vape01.png');
+            this.load.image('vape02', 'vape02.png');
+            this.load.image('vape03', 'vape03.png');
+            this.load.image('vape04', 'vape04.png');
+            this.load.image('vape05', 'vape05.png');
+            this.load.image('bin01', 'bin01.png');
         }
 
         function create() {
+            bin = this.physics.add.sprite(400, 550, 'bin01').setScale(0.7);
+            bin.setCollideWorldBounds(true);
+
             vapes = this.physics.add.group();
+            
             this.time.addEvent({ delay: 1000, callback: spawnVape, callbackScope: this, loop: true });
+            
+            this.physics.add.overlap(bin, vapes, catchVape, null, this);
+            
             scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '20px', fill: '#fff' });
+            
+            cursors = this.input.keyboard.createCursorKeys();
         }
 
         function update() {
-            vapes.children.iterate((vape) => {
-                if (vape.y < -50) {
-                    gameOver = true;
-                    this.add.text(300, 250, 'Game Over!', { fontSize: '40px', fill: '#ff0000' });
-                    this.physics.pause();
-                }
-            });
+            if (gameOver) return;
+
+            if (cursors.left.isDown) {
+                bin.setVelocityX(-300);
+            } else if (cursors.right.isDown) {
+                bin.setVelocityX(300);
+            } else {
+                bin.setVelocityX(0);
+            }
         }
 
         function spawnVape() {
             if (gameOver) return;
             let x = Phaser.Math.Between(50, 750);
-            let vape = vapes.create(x, 600, 'vape');
+            let randomVape = Phaser.Math.RND.pick(vapeTypes);
+            let vape = vapes.create(x, 0, randomVape);
             vape.setScale(0.5);
-            vape.setVelocityY(-150);
-            vape.setInteractive();
-            vape.on('pointerdown', () => destroyVape(vape));
+            vape.setVelocityY(speed);
         }
 
-        function destroyVape(vape) {
+        function catchVape(bin, vape) {
             vape.destroy();
             score += 10;
             scoreText.setText('Score: ' + score);
+
+            if (score % 10 === 0) {
+                speed += 20;
+            }
         }
     </script>
 </body>
