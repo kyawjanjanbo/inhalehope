@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vape No More Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            backgroundColor: '#87CEEB',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 200 }
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+        
+        let game = new Phaser.Game(config);
+        let vapes;
+        let score = 0;
+        let scoreText;
+        let gameOver = false;
+
+        function preload() {
+            this.load.image('vape', 'https://i.imgur.com/JFf0D5Y.png'); // Vape image
+        }
+
+        function create() {
+            vapes = this.physics.add.group();
+            this.time.addEvent({ delay: 1000, callback: spawnVape, callbackScope: this, loop: true });
+            scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '20px', fill: '#fff' });
+        }
+
+        function update() {
+            vapes.children.iterate((vape) => {
+                if (vape.y < -50) {
+                    gameOver = true;
+                    this.add.text(300, 250, 'Game Over!', { fontSize: '40px', fill: '#ff0000' });
+                    this.physics.pause();
+                }
+            });
+        }
+
+        function spawnVape() {
+            if (gameOver) return;
+            let x = Phaser.Math.Between(50, 750);
+            let vape = vapes.create(x, 600, 'vape');
+            vape.setScale(0.5);
+            vape.setVelocityY(-150);
+            vape.setInteractive();
+            vape.on('pointerdown', () => destroyVape(vape));
+        }
+
+        function destroyVape(vape) {
+            vape.destroy();
+            score += 10;
+            scoreText.setText('Score: ' + score);
+        }
+    </script>
+</body>
+</html>
