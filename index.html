@@ -18,9 +18,34 @@
         canvas {
             touch-action: none;
         }
+        #highScoresScreen {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+    <div id="highScoresScreen">
+        <h2>Top Players List</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="highScoresTable"></tbody>
+        </table>
+        <button onclick="restartGame()">Restart Game</button>
+    </div>
     <script>
         const config = {
             type: Phaser.AUTO,
@@ -118,26 +143,38 @@
         function endGame() {
             gameOver = true;
             vapes.clear(true, true);
-            this.add.text(config.width / 2 - 80, config.height / 2, 'Game Over!', { fontSize: '40px', fill: '#ff0000' });
             saveHighScore();
             displayHighScores();
-            this.scene.pause();
+            game.destroy();
         }
 
         function saveHighScore() {
-            highScores.push({ name: playerName, score: score });
+            let existingPlayerIndex = highScores.findIndex(player => player.name === playerName);
+            if (existingPlayerIndex !== -1) {
+                if (score > highScores[existingPlayerIndex].score) {
+                    highScores[existingPlayerIndex].score = score;
+                }
+            } else {
+                highScores.push({ name: playerName, score: score });
+            }
             highScores.sort((a, b) => b.score - a.score);
-            highScores = highScores.slice(0, Math.min(highScores.length, 10));
+            highScores = highScores.slice(0, 10);
             localStorage.setItem('highScores', JSON.stringify(highScores));
         }
 
         function displayHighScores() {
-            let highScoreText = "Top Players List:\n";
-            let maxDisplay = Math.min(highScores.length, 10);
-            for (let i = 0; i < maxDisplay; i++) {
-                highScoreText += `${i + 1}. ${highScores[i].name}: ${highScores[i].score}\n`;
-            }
-            alert(highScoreText);
+            document.getElementById("highScoresScreen").style.display = "block";
+            let tableBody = document.getElementById("highScoresTable");
+            tableBody.innerHTML = "";
+            highScores.forEach((player, index) => {
+                let row = `<tr><td>${index + 1}</td><td>${player.name}</td><td>${player.score}</td></tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function restartGame() {
+            document.getElementById("highScoresScreen").style.display = "none";
+            askPlayerName();
         }
 
         askPlayerName();
