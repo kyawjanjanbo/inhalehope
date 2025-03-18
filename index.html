@@ -34,40 +34,11 @@
                     debug: false
                 }
             },
-            scene: [MainMenu, PlayGame]
+            scene: PlayGame
         };
         
         let game = new Phaser.Game(config);
         let bestScore = localStorage.getItem('bestScore') || 0;
-
-        class MainMenu extends Phaser.Scene {
-            constructor() {
-                super({ key: 'MainMenu' });
-            }
-
-            preload() {
-                console.log("Loading MainMenu Scene...");
-                this.load.image('playButton', 'playButton.png');
-            }
-
-            create() {
-                console.log("MainMenu Scene Loaded.");
-                this.add.text(config.width / 2, config.height / 3, 'Inhale Hope, Not Smoke', { fontSize: '40px', fill: '#fff' }).setOrigin(0.5);
-                this.add.text(config.width / 2, config.height / 2.5, `Best Score: ${bestScore}`, { fontSize: '30px', fill: '#fff' }).setOrigin(0.5);
-                
-                let playButton;
-                if (this.textures.exists('playButton')) {
-                    playButton = this.add.image(config.width / 2, config.height / 2, 'playButton').setInteractive().setScale(0.5);
-                } else {
-                    playButton = this.add.text(config.width / 2, config.height / 2, 'PLAY', { fontSize: '40px', fill: '#0f0' }).setOrigin(0.5).setInteractive();
-                }
-                
-                playButton.on('pointerdown', () => {
-                    console.log("Play Button Clicked. Starting Game...");
-                    this.scene.start('PlayGame');
-                });
-            }
-        }
 
         class PlayGame extends Phaser.Scene {
             constructor() {
@@ -104,7 +75,8 @@
                 
                 this.physics.add.overlap(this.bin, this.vapes, this.catchVape, null, this);
                 
-                this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '30px', fill: '#fff' }).setScrollFactor(0);
+                this.scoreText = this.add.text(10, 10, `Score: 0`, { fontSize: '30px', fill: '#fff' }).setScrollFactor(0);
+                this.bestScoreText = this.add.text(10, 50, `Best Score: ${bestScore}`, { fontSize: '30px', fill: '#fff' }).setScrollFactor(0);
             }
 
             spawnVape() {
@@ -119,7 +91,7 @@
             catchVape(bin, vape) {
                 vape.destroy();
                 this.score += 10;
-                this.scoreText.setText('Score: ' + this.score);
+                this.scoreText.setText(`Score: ${this.score}`);
 
                 if (this.score % 10 === 0) {
                     this.speed += 20;
@@ -128,6 +100,11 @@
 
             update() {
                 if (this.gameOver) return;
+                if (this.score > bestScore) {
+                    bestScore = this.score;
+                    localStorage.setItem('bestScore', bestScore);
+                    this.bestScoreText.setText(`Best Score: ${bestScore}`);
+                }
             }
         }
     </script>
