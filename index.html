@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Inhale Hope Not Smoke</title>
+    <title>Inhale Hope, Not Smoke</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <style>
         body {
@@ -44,7 +44,6 @@
             </thead>
             <tbody id="highScoresTable"></tbody>
         </table>
-        <button onclick="restartGame()">Restart Game</button>
     </div>
     <script>
         const config = {
@@ -89,14 +88,6 @@
         function askPlayerName() {
             playerName = prompt("Enter your nickname:");
             if (!playerName) playerName = "Anonymous";
-            startGame();
-        }
-
-        function startGame() {
-            if (game) game.destroy(true); // Destroy existing game before restarting
-            gameOver = false;
-            score = 0;
-            speed = 150;
             game = new Phaser.Game(config);
         }
         
@@ -177,11 +168,6 @@
                 let row = `<tr><td>${index + 1}</td><td>${player.name}</td><td>${player.score}</td></tr>`;
                 tableBody.innerHTML += row;
             });
-        }
-
-        function restartGame() {
-            document.getElementById("highScoresScreen").style.display = "none";
-            startGame();
         }
 
         askPlayerName();
