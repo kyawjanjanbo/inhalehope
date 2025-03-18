@@ -121,10 +121,10 @@
 
         function spawnVape() {
             if (gameOver) return;
-            let x = Phaser.Math.Between(50, config.width - 50);
+            let spawnX = Phaser.Math.Between(50, config.width - 50);
             let randomVape = Phaser.Math.RND.pick(vapeTypes);
             if (!randomVape) return;
-            let vape = vapes.create(x, 0, randomVape);
+            let vape = vapes.create(spawnX, 0, randomVape);
             vape.setScale(0.15);
             
             if (score >= 20) {
@@ -135,13 +135,6 @@
             } else {
                 vape.setVelocityY(speed);
             }
-            if (gameOver) return;
-            let x = Phaser.Math.Between(50, config.width - 50);
-            let randomVape = Phaser.Math.RND.pick(vapeTypes);
-            if (!randomVape) return;
-            let vape = vapes.create(x, 0, randomVape);
-            vape.setScale(0.15);
-            vape.setVelocityY(speed);
         }
 
         function catchVape(binSprite, vape) {
@@ -149,7 +142,7 @@
             score += 1;
             scoreText.setText('Score: ' + score);
 
-            if (score >= 10) {
+            if (score % 10 === 0) {
                 speed += 20;
             }
         }
