@@ -127,15 +127,16 @@
         function saveHighScore() {
             highScores.push({ name: playerName, score: score });
             highScores.sort((a, b) => b.score - a.score);
-            highScores = highScores.slice(0, 10);
+            highScores = highScores.slice(0, Math.min(highScores.length, 10));
             localStorage.setItem('highScores', JSON.stringify(highScores));
         }
 
         function displayHighScores() {
             let highScoreText = "Top Players List:\n";
-            highScores.forEach((player, index) => {
-                highScoreText += `${index + 1}. ${player.name}: ${player.score}\n`;
-            });
+            let maxDisplay = Math.min(highScores.length, 10);
+            for (let i = 0; i < maxDisplay; i++) {
+                highScoreText += `${i + 1}. ${highScores[i].name}: ${highScores[i].score}\n`;
+            }
             alert(highScoreText);
         }
 
