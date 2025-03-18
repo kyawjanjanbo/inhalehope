@@ -42,13 +42,13 @@
         };
         
         let game = new Phaser.Game(config);
-        let bin;
+        let binSprite;
         let vapes;
         let score = 0;
         let scoreText;
         let speed = 150;
         let gameOver = false;
-        let vapeTypes = ['vape01', 'vape02', 'vape03', 'vape04', 'vape05'];
+        let vapeTypes;
 
         function preload() {
             this.load.image('vape01', 'vape01.png');
@@ -60,18 +60,20 @@
         }
 
         function create() {
-            bin = this.physics.add.sprite(config.width / 2, config.height - 80, 'bin01').setScale(0.1);
-            bin.setCollideWorldBounds(true);
+            vapeTypes = ['vape01', 'vape02', 'vape03', 'vape04', 'vape05'];
+
+            binSprite = this.physics.add.sprite(config.width / 2, config.height - 80, 'bin01').setScale(0.1);
+            binSprite.setCollideWorldBounds(true);
             
             this.input.on('pointermove', function (pointer) {
-                bin.x = Phaser.Math.Clamp(pointer.x, bin.width, config.width - bin.width);
+                binSprite.x = Phaser.Math.Clamp(pointer.x, binSprite.displayWidth / 2, config.width - binSprite.displayWidth / 2);
             });
 
             vapes = this.physics.add.group();
             
             this.time.addEvent({ delay: 1000, callback: spawnVape, callbackScope: this, loop: true });
             
-            this.physics.add.overlap(bin, vapes, catchVape, null, this);
+            this.physics.add.overlap(binSprite, vapes, catchVape, null, this);
             
             scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '30px', fill: '#fff' }).setScrollFactor(0);
         }
@@ -89,12 +91,13 @@
             if (gameOver) return;
             let x = Phaser.Math.Between(50, config.width - 50);
             let randomVape = Phaser.Math.RND.pick(vapeTypes);
+            if (!randomVape) return;
             let vape = vapes.create(x, 0, randomVape);
             vape.setScale(0.15);
             vape.setVelocityY(speed);
         }
 
-        function catchVape(bin, vape) {
+        function catchVape(binSprite, vape) {
             vape.destroy();
             score += 10;
             scoreText.setText('Score: ' + score);
