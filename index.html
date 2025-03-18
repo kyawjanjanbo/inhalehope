@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Inhale Hope Game</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             margin: 0;
@@ -48,10 +47,6 @@
         <button onclick="restartGame()">Restart Game</button>
     </div>
     <script>
-        const supabaseUrl = "https://mptmrhaposstkzfieszw.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wdG1yaGFwb3NzdGt6Zmllc3p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyNzQzNDYsImV4cCI6MjA1Nzg1MDM0Nn0.9D9HS2XIuG0sC7GifFK746I3OBKioNjgSKiFbUQ4LTE";
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
         let playerName;
         let game;
         
@@ -132,25 +127,25 @@
             }
         }
 
-        async function endGame() {
+        function endGame() {
             this.gameOver = true;
             this.vapes.clear(true, true);
-            await saveHighScore(this.score);
-            await displayHighScores();
-            this.scene.restart();
+            saveHighScore(this.score);
+            displayHighScores();
         }
 
-        async function saveHighScore(score) {
-            const { error } = await supabase.from("leaderboard").upsert([{ name: playerName, score }]);
-            if (error) console.error("Error saving score:", error);
+        function saveHighScore(score) {
+            let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+            highScores.push({ name: playerName, score });
+            highScores.sort((a, b) => b.score - a.score);
+            localStorage.setItem("highScores", JSON.stringify(highScores.slice(0, 10)));
         }
 
-        async function displayHighScores() {
-            const { data, error } = await supabase.from("leaderboard").select("*").order("score", { ascending: false }).limit(10);
-            if (error) return console.error("Error fetching high scores:", error);
+        function displayHighScores() {
+            let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
             document.getElementById("highScoresScreen").style.display = "block";
             let tableBody = document.getElementById("highScoresTable");
-            tableBody.innerHTML = data.map((p, i) => `<tr><td>${i + 1}</td><td>${p.name}</td><td>${p.score}</td></tr>`).join('');
+            tableBody.innerHTML = highScores.map((p, i) => `<tr><td>${i + 1}</td><td>${p.name}</td><td>${p.score}</td></tr>`).join('');
         }
 
         function restartGame() {
