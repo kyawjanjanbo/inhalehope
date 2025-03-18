@@ -133,7 +133,7 @@
                 let randomVape = Phaser.Math.RND.pick(vapeTypes);
                 if (!randomVape) return;
                 let vape = vapes.create(spawnX, 0, randomVape);
-                vape.setScale(0.15);
+                vape.setScale(0.12, 0.12);
                 
                 if (score >= 20) {
                     vape.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(150, 250));
