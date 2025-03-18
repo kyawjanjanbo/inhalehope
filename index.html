@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vape No More Game</title>
+    <title>Inhale Hope Not Smoke</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <style>
         body {
@@ -89,6 +89,14 @@
         function askPlayerName() {
             playerName = prompt("Enter your nickname:");
             if (!playerName) playerName = "Anonymous";
+            startGame();
+        }
+
+        function startGame() {
+            if (game) game.destroy(true); // Destroy existing game before restarting
+            gameOver = false;
+            score = 0;
+            speed = 150;
             game = new Phaser.Game(config);
         }
         
@@ -145,7 +153,6 @@
             vapes.clear(true, true);
             saveHighScore();
             displayHighScores();
-            game.destroy();
         }
 
         function saveHighScore() {
@@ -174,7 +181,7 @@
 
         function restartGame() {
             document.getElementById("highScoresScreen").style.display = "none";
-            askPlayerName();
+            startGame();
         }
 
         askPlayerName();
