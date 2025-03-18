@@ -79,7 +79,6 @@
         let speed = 150;
         let gameOver = false;
         let vapeTypes;
-        let playerName;
 
         function preload() {
             this.load.image('vape01', 'vape01.png');
@@ -91,8 +90,9 @@
         }
 
         function askPlayerName() {
-            playerName = prompt("Enter your nickname:") || "Anonymous";
+            let playerName = prompt("Enter your nickname:") || "Anonymous";
             game = new Phaser.Game(config);
+            game.playerName = playerName;
         }
         
         function create() {
@@ -153,7 +153,7 @@
 
         async function saveHighScore() {
             const { data, error } = await supabase.from("leaderboard").upsert([
-                { name: playerName, score: score }
+                { name: game.playerName, score: score }
             ]);
             if (error) {
                 console.error("Error saving score:", error);
