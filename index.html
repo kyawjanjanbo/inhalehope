@@ -155,7 +155,8 @@
                     body: JSON.stringify({ name: playerName, score: score }),
                     headers: { "Content-Type": "application/json" }
                 });
-                console.log("Score saved successfully");
+                let result = await response.text();
+                console.log("Score save response:", result);
             } catch (error) {
                 console.error("Error saving score:", error);
             }
