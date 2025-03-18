@@ -131,10 +131,10 @@
 
         function catchVape(binSprite, vape) {
             vape.destroy();
-            score += 10;
+            score += 1;
             scoreText.setText('Score: ' + score);
 
-            if (score % 10 === 0) {
+            if (score >= 30) {
                 speed += 20;
             }
         }
