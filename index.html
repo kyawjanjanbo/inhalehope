@@ -52,33 +52,27 @@
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wdG1yaGFwb3NzdGt6Zmllc3p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyNzQzNDYsImV4cCI6MjA1Nzg1MDM0Nn0.9D9HS2XIuG0sC7GifFK746I3OBKioNjgSKiFbUQ4LTE";
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        const config = {
-            type: Phaser.AUTO,
-            width: window.innerWidth,
-            height: window.innerHeight,
-            backgroundColor: '#87CEEB',
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { y: 0 },
-                    debug: false
-                }
-            },
-            scene: {
-                preload: preload,
-                create: create,
-                update: update
-            }
+        let game;
+        let playerName;
+        
+        window.onload = function() {
+            askPlayerName();
         };
         
-        let game;
-        let binSprite;
-        let vapes;
-        let score = 0;
-        let scoreText;
-        let speed = 150;
-        let gameOver = false;
-        let vapeTypes;
+        function askPlayerName() {
+            playerName = prompt("Enter your nickname:") || "Anonymous";
+            game = new Phaser.Game({
+                type: Phaser.AUTO,
+                width: window.innerWidth,
+                height: window.innerHeight,
+                backgroundColor: '#87CEEB',
+                physics: {
+                    default: 'arcade',
+                    arcade: { gravity: { y: 0 }, debug: false }
+                },
+                scene: { preload, create, update }
+            });
+        }
 
         function preload() {
             this.load.image('vape01', 'vape01.png');
@@ -89,100 +83,80 @@
             this.load.image('bin01', 'bin01.png');
         }
 
-        function askPlayerName() {
-            let playerName = prompt("Enter your nickname:") || "Anonymous";
-            game = new Phaser.Game(config);
-            game.playerName = playerName;
-        }
-        
         function create() {
-            vapeTypes = ['vape01', 'vape02', 'vape03', 'vape04', 'vape05'];
-
-            binSprite = this.physics.add.sprite(config.width / 2, config.height - 80, 'bin01').setScale(0.1);
-            binSprite.setCollideWorldBounds(true);
+            this.vapeTypes = ['vape01', 'vape02', 'vape03', 'vape04', 'vape05'];
+            this.binSprite = this.physics.add.sprite(this.scale.width / 2, this.scale.height - 80, 'bin01').setScale(0.1);
+            this.binSprite.setCollideWorldBounds(true);
             
-            this.input.on('pointermove', function (pointer) {
-                binSprite.x = Phaser.Math.Clamp(pointer.x, binSprite.displayWidth / 2, config.width - binSprite.displayWidth / 2);
+            this.input.on('pointermove', (pointer) => {
+                this.binSprite.x = Phaser.Math.Clamp(pointer.x, this.binSprite.displayWidth / 2, this.scale.width - this.binSprite.displayWidth / 2);
             });
 
-            vapes = this.physics.add.group();
+            this.vapes = this.physics.add.group();
             
             this.time.addEvent({ delay: 1000, callback: spawnVape, callbackScope: this, loop: true });
             
-            this.physics.add.overlap(binSprite, vapes, catchVape, null, this);
+            this.physics.add.overlap(this.binSprite, this.vapes, catchVape, null, this);
             
-            scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '30px', fill: '#fff' }).setScrollFactor(0);
+            this.score = 0;
+            this.speed = 150;
+            this.gameOver = false;
+            this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '30px', fill: '#fff' }).setScrollFactor(0);
         }
 
         function update() {
-            if (gameOver) return;
-            vapes.children.iterate(function (vape) {
-                if (vape.y > config.height) {
-                    endGame();
+            if (this.gameOver) return;
+            this.vapes.children.iterate((vape) => {
+                if (vape.y > this.scale.height) {
+                    endGame.call(this);
                 }
             });
         }
 
         function spawnVape() {
-            if (gameOver) return;
-            let x = Phaser.Math.Between(50, config.width - 50);
-            let randomVape = Phaser.Math.RND.pick(vapeTypes);
+            if (this.gameOver) return;
+            let x = Phaser.Math.Between(50, this.scale.width - 50);
+            let randomVape = Phaser.Math.RND.pick(this.vapeTypes);
             if (!randomVape) return;
-            let vape = vapes.create(x, 0, randomVape);
+            let vape = this.vapes.create(x, 0, randomVape);
             vape.setScale(0.15);
-            vape.setVelocityY(speed);
+            vape.setVelocityY(this.speed);
         }
 
         function catchVape(binSprite, vape) {
             vape.destroy();
-            score += 10;
-            scoreText.setText('Score: ' + score);
-
-            if (score % 10 === 0) {
-                speed += 20;
+            this.score += 10;
+            this.scoreText.setText('Score: ' + this.score);
+            if (this.score % 10 === 0) {
+                this.speed += 20;
             }
         }
 
         async function endGame() {
-            gameOver = true;
-            vapes.clear(true, true);
-            await saveHighScore();
+            this.gameOver = true;
+            this.vapes.clear(true, true);
+            await saveHighScore(this.score);
             await displayHighScores();
-            game.destroy();
+            game.destroy(true);
         }
 
-        async function saveHighScore() {
-            const { data, error } = await supabase.from("leaderboard").upsert([
-                { name: game.playerName, score: score }
-            ]);
-            if (error) {
-                console.error("Error saving score:", error);
-            } else {
-                console.log("Score saved successfully!");
-            }
+        async function saveHighScore(score) {
+            const { error } = await supabase.from("leaderboard").upsert([{ name: playerName, score }]);
+            if (error) console.error("Error saving score:", error);
         }
 
         async function displayHighScores() {
             const { data, error } = await supabase.from("leaderboard").select("*").order("score", { ascending: false }).limit(10);
-            if (error) {
-                console.error("Error fetching high scores:", error);
-                return;
-            }
+            if (error) return console.error("Error fetching high scores:", error);
             document.getElementById("highScoresScreen").style.display = "block";
             let tableBody = document.getElementById("highScoresTable");
-            tableBody.innerHTML = "";
-            data.forEach((player, index) => {
-                let row = `<tr><td>${index + 1}</td><td>${player.name}</td><td>${player.score}</td></tr>`;
-                tableBody.innerHTML += row;
-            });
+            tableBody.innerHTML = data.map((p, i) => `<tr><td>${i + 1}</td><td>${p.name}</td><td>${p.score}</td></tr>`).join('');
         }
 
         function restartGame() {
             document.getElementById("highScoresScreen").style.display = "none";
             askPlayerName();
         }
-
-        askPlayerName();
     </script>
 </body>
 </html>
