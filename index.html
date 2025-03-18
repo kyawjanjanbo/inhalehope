@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Inhale Hope Game</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             margin: 0;
@@ -47,7 +48,9 @@
         <button onclick="restartGame()">Restart Game</button>
     </div>
     <script>
-        const GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbzr7NUl42eDsD4H-XGDG9AGBMpW_H_5A25A6YrXBU9MlTZ0O9zS0Q7RPs8q9qzobUnN/exec";
+        const supabaseUrl = "https://mptmrhaposstkzfieszw.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wdG1yaGFwb3NzdGt6Zmllc3p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyNzQzNDYsImV4cCI6MjA1Nzg1MDM0Nn0.9D9HS2XIuG0sC7GifFK746I3OBKioNjgSKiFbUQ4LTE";
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         const config = {
             type: Phaser.AUTO,
@@ -149,40 +152,29 @@
         }
 
         async function saveHighScore() {
-            try {
-                let response = await fetch(GOOGLE_SHEET_API, {
-                    method: "POST",
-                    body: JSON.stringify({ name: playerName, score: score }),
-                    headers: { "Content-Type": "application/json" }
-                });
-                let result = await response.text();
-                console.log("Score save response:", result);
-            } catch (error) {
+            const { data, error } = await supabase.from("leaderboard").upsert([
+                { name: playerName, score: score }
+            ]);
+            if (error) {
                 console.error("Error saving score:", error);
+            } else {
+                console.log("Score saved successfully!");
             }
         }
 
         async function displayHighScores() {
-            try {
-                const response = await fetch(GOOGLE_SHEET_API);
-                const highScores = await response.json();
-                document.getElementById("highScoresScreen").style.display = "block";
-                let tableBody = document.getElementById("highScoresTable");
-                tableBody.innerHTML = "";
-                
-                if (highScores.length === 0) {
-                    tableBody.innerHTML = "<tr><td colspan='3'>No high scores yet.</td></tr>";
-                } else {
-                    highScores.sort((a, b) => b[1] - a[1]);
-                    highScores.slice(0, 10).forEach((player, index) => {
-                        let row = `<tr><td>${index + 1}</td><td>${player[0]}</td><td>${player[1]}</td></tr>`;
-                        tableBody.innerHTML += row;
-                    });
-                }
-                console.log("High scores loaded successfully");
-            } catch (error) {
+            const { data, error } = await supabase.from("leaderboard").select("*").order("score", { ascending: false }).limit(10);
+            if (error) {
                 console.error("Error fetching high scores:", error);
+                return;
             }
+            document.getElementById("highScoresScreen").style.display = "block";
+            let tableBody = document.getElementById("highScoresTable");
+            tableBody.innerHTML = "";
+            data.forEach((player, index) => {
+                let row = `<tr><td>${index + 1}</td><td>${player.name}</td><td>${player.score}</td></tr>`;
+                tableBody.innerHTML += row;
+            });
         }
 
         function restartGame() {
