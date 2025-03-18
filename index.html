@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Inhale Hope Not Smoke</title>
+    <title>Inhale Hope Game</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <style>
         body {
@@ -149,24 +149,39 @@
         }
 
         async function saveHighScore() {
-            await fetch(GOOGLE_SHEET_API, {
-                method: "POST",
-                body: JSON.stringify({ name: playerName, score: score }),
-                headers: { "Content-Type": "application/json" }
-            });
+            try {
+                let response = await fetch(GOOGLE_SHEET_API, {
+                    method: "POST",
+                    body: JSON.stringify({ name: playerName, score: score }),
+                    headers: { "Content-Type": "application/json" }
+                });
+                console.log("Score saved successfully");
+            } catch (error) {
+                console.error("Error saving score:", error);
+            }
         }
 
         async function displayHighScores() {
-            const response = await fetch(GOOGLE_SHEET_API);
-            const highScores = await response.json();
-            document.getElementById("highScoresScreen").style.display = "block";
-            let tableBody = document.getElementById("highScoresTable");
-            tableBody.innerHTML = "";
-            highScores.sort((a, b) => b[1] - a[1]);
-            highScores.slice(0, 10).forEach((player, index) => {
-                let row = `<tr><td>${index + 1}</td><td>${player[0]}</td><td>${player[1]}</td></tr>`;
-                tableBody.innerHTML += row;
-            });
+            try {
+                const response = await fetch(GOOGLE_SHEET_API);
+                const highScores = await response.json();
+                document.getElementById("highScoresScreen").style.display = "block";
+                let tableBody = document.getElementById("highScoresTable");
+                tableBody.innerHTML = "";
+                
+                if (highScores.length === 0) {
+                    tableBody.innerHTML = "<tr><td colspan='3'>No high scores yet.</td></tr>";
+                } else {
+                    highScores.sort((a, b) => b[1] - a[1]);
+                    highScores.slice(0, 10).forEach((player, index) => {
+                        let row = `<tr><td>${index + 1}</td><td>${player[0]}</td><td>${player[1]}</td></tr>`;
+                        tableBody.innerHTML += row;
+                    });
+                }
+                console.log("High scores loaded successfully");
+            } catch (error) {
+                console.error("Error fetching high scores:", error);
+            }
         }
 
         function restartGame() {
