@@ -41,7 +41,7 @@
             }
         };
         
-        let game = new Phaser.Game(config);
+        let game;
         let binSprite;
         let vapes;
         let score = 0;
@@ -49,6 +49,8 @@
         let speed = 150;
         let gameOver = false;
         let vapeTypes;
+        let playerName;
+        let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
 
         function preload() {
             this.load.image('vape01', 'vape01.png');
@@ -59,6 +61,12 @@
             this.load.image('bin01', 'bin01.png');
         }
 
+        function askPlayerName() {
+            playerName = prompt("Enter your nickname:");
+            if (!playerName) playerName = "Anonymous";
+            game = new Phaser.Game(config);
+        }
+        
         function create() {
             vapeTypes = ['vape01', 'vape02', 'vape03', 'vape04', 'vape05'];
 
@@ -111,8 +119,27 @@
             gameOver = true;
             vapes.clear(true, true);
             this.add.text(config.width / 2 - 80, config.height / 2, 'Game Over!', { fontSize: '40px', fill: '#ff0000' });
+            saveHighScore();
+            displayHighScores();
             this.scene.pause();
         }
+
+        function saveHighScore() {
+            highScores.push({ name: playerName, score: score });
+            highScores.sort((a, b) => b.score - a.score);
+            highScores = highScores.slice(0, 10);
+            localStorage.setItem('highScores', JSON.stringify(highScores));
+        }
+
+        function displayHighScores() {
+            let highScoreText = "Top Players List:\n";
+            highScores.forEach((player, index) => {
+                highScoreText += `${index + 1}. ${player.name}: ${player.score}\n`;
+            });
+            alert(highScoreText);
+        }
+
+        askPlayerName();
     </script>
 </body>
 </html>
