@@ -126,6 +126,21 @@
             if (!randomVape) return;
             let vape = vapes.create(x, 0, randomVape);
             vape.setScale(0.15);
+            
+            if (score >= 20) {
+                vape.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(150, 250));
+                vape.setBounce(1, 1);
+                vape.setCollideWorldBounds(true);
+                vape.setAngularVelocity(Phaser.Math.Between(-200, 200));
+            } else {
+                vape.setVelocityY(speed);
+            }
+            if (gameOver) return;
+            let x = Phaser.Math.Between(50, config.width - 50);
+            let randomVape = Phaser.Math.RND.pick(vapeTypes);
+            if (!randomVape) return;
+            let vape = vapes.create(x, 0, randomVape);
+            vape.setScale(0.15);
             vape.setVelocityY(speed);
         }
 
@@ -134,7 +149,7 @@
             score += 1;
             scoreText.setText('Score: ' + score);
 
-            if (score >= 30) {
+            if (score >= 10) {
                 speed += 20;
             }
         }
