@@ -52,8 +52,8 @@
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wdG1yaGFwb3NzdGt6Zmllc3p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyNzQzNDYsImV4cCI6MjA1Nzg1MDM0Nn0.9D9HS2XIuG0sC7GifFK746I3OBKioNjgSKiFbUQ4LTE";
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        let game;
         let playerName;
+        let game;
         
         window.onload = function() {
             askPlayerName();
@@ -108,7 +108,7 @@
             if (this.gameOver) return;
             this.vapes.children.iterate((vape) => {
                 if (vape.y > this.scale.height) {
-                    endGame.call(this);
+                    this.endGame();
                 }
             });
         }
@@ -137,7 +137,7 @@
             this.vapes.clear(true, true);
             await saveHighScore(this.score);
             await displayHighScores();
-            game.destroy(true);
+            this.scene.restart();
         }
 
         async function saveHighScore(score) {
