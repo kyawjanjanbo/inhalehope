@@ -121,6 +121,30 @@
 
         function spawnVape() {
             if (gameOver) return;
+            let numVapes = 1;
+            if (score >= 50) {
+                numVapes = 3;
+            } else if (score >= 30) {
+                numVapes = 2;
+            }
+            
+            for (let i = 0; i < numVapes; i++) {
+                let spawnX = Phaser.Math.Between(50, config.width - 50);
+                let randomVape = Phaser.Math.RND.pick(vapeTypes);
+                if (!randomVape) return;
+                let vape = vapes.create(spawnX, 0, randomVape);
+                vape.setScale(0.15);
+                
+                if (score >= 20) {
+                    vape.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(150, 250));
+                    vape.setBounce(1, 1);
+                    vape.setCollideWorldBounds(true);
+                    vape.setAngularVelocity(Phaser.Math.Between(-200, 200));
+                } else {
+                    vape.setVelocityY(speed);
+                }
+            }
+            if (gameOver) return;
             let spawnX = Phaser.Math.Between(50, config.width - 50);
             let randomVape = Phaser.Math.RND.pick(vapeTypes);
             if (!randomVape) return;
