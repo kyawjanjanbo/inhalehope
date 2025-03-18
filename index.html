@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vape No More Game</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"></script>
     <style>
         body {
             margin: 0;
@@ -47,6 +49,20 @@
         <button onclick="restartGame()">Restart Game</button>
     </div>
     <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA53uNg6l4wsv-tip2Emx-MrtIGx_2y5Eo",
+            authDomain: "inhale-hope.firebaseapp.com",
+            projectId: "inhale-hope",
+            storageBucket: "inhale-hope.firebasestorage.app",
+            messagingSenderId: "226581101189",
+            appId: "1:226581101189:web:67a0a66313065aae5547ec"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         const config = {
             type: Phaser.AUTO,
             width: window.innerWidth,
@@ -75,7 +91,6 @@
         let gameOver = false;
         let vapeTypes;
         let playerName;
-        let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
 
         function preload() {
             this.load.image('vape01', 'vape01.png');
@@ -140,7 +155,7 @@
             }
         }
 
-        function endGame() {
+        async function endGame() {
             gameOver = true;
             vapes.clear(true, true);
             saveHighScore();
@@ -148,26 +163,21 @@
             game.destroy();
         }
 
-        function saveHighScore() {
-            let existingPlayerIndex = highScores.findIndex(player => player.name === playerName);
-            if (existingPlayerIndex !== -1) {
-                if (score > highScores[existingPlayerIndex].score) {
-                    highScores[existingPlayerIndex].score = score;
-                }
-            } else {
-                highScores.push({ name: playerName, score: score });
+        async function saveHighScore() {
+            const scoresRef = db.collection("highScores");
+            const doc = await scoresRef.doc(playerName).get();
+            if (!doc.exists || score > doc.data().score) {
+                await scoresRef.doc(playerName).set({ name: playerName, score: score });
             }
-            highScores.sort((a, b) => b.score - a.score);
-            highScores = highScores.slice(0, 10);
-            localStorage.setItem('highScores', JSON.stringify(highScores));
         }
 
-        function displayHighScores() {
+        async function displayHighScores() {
             document.getElementById("highScoresScreen").style.display = "block";
             let tableBody = document.getElementById("highScoresTable");
             tableBody.innerHTML = "";
-            highScores.forEach((player, index) => {
-                let row = `<tr><td>${index + 1}</td><td>${player.name}</td><td>${player.score}</td></tr>`;
+            const snapshot = await db.collection("highScores").orderBy("score", "desc").limit(10).get();
+            snapshot.forEach((doc, index) => {
+                let row = `<tr><td>${index + 1}</td><td>${doc.data().name}</td><td>${doc.data().score}</td></tr>`;
                 tableBody.innerHTML += row;
             });
         }
